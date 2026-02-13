@@ -6,10 +6,12 @@ const expenseSchema = new mongoose.Schema({
   year: Number,
   amount: Number,
   description: String,
-  date: {
-    type: Date,
-    default: Date.now
-  }
+ date: {
+  type: Date,
+  default: Date.now,
+  index: { expires: "180d" }
+}
+
 });
 
 module.exports = mongoose.model("Expense", expenseSchema);

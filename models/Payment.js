@@ -4,11 +4,12 @@ const paymentSchema = new mongoose.Schema({
   flatNumber: String,
   name: String,
   month: String,
-  year: Number,
+  year: String,
   amount: Number,
   date: {
     type: Date,
-    default: Date.now
+    default: Date.now,
+    index: { expires: "180d" } // 6 months auto delete
   }
 });
 
