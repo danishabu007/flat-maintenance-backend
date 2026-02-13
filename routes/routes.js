@@ -70,19 +70,18 @@ router.get("/status", async (req, res) => {
 
 
 
-
 router.get("/full-report", async (req, res) => {
   try {
-    const { month } = req.query;
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
-    let filter = {};
+    const payments = await Payment.find({
+      date: { $gte: threeMonthsAgo }
+    }).sort({ date: -1 });
 
-    if (month) {
-      filter.month = month;
-    }
-
-    const payments = await Payment.find(filter).sort({ date: -1 });
-    const expenses = await Expense.find(filter).sort({ date: -1 });
+    const expenses = await Expense.find({
+      date: { $gte: threeMonthsAgo }
+    }).sort({ date: -1 });
 
     const totalCollection = payments.reduce(
       (sum, item) => sum + item.amount,
