@@ -21,8 +21,7 @@ router.post("/payments", async (req, res) => {
   try {
     const payment = new Payment(req.body);
     await payment.save();
-
-    await deleteOldData(); // rolling delete
+    await deleteOldData();
 
     res.json({ message: "Payment Added Successfully" });
   } catch (err) {
@@ -35,8 +34,17 @@ router.post("/payments", async (req, res) => {
 /* ================================================= */
 router.put("/payments/:id", async (req, res) => {
   try {
-    await Payment.findByIdAndUpdate(req.params.id, req.body);
-    res.json({ message: "Payment Updated Successfully" });
+    const updated = await Payment.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+
+    res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -61,8 +69,7 @@ router.post("/expenses", async (req, res) => {
   try {
     const expense = new Expense(req.body);
     await expense.save();
-
-    await deleteOldData(); // rolling delete
+    await deleteOldData();
 
     res.json({ message: "Expense Added Successfully" });
   } catch (err) {
@@ -73,14 +80,16 @@ router.post("/expenses", async (req, res) => {
 /* ================================================= */
 /* EDIT EXPENSE */
 /* ================================================= */
-router.put("/payments/:id", async (req, res) => {
+router.put("/expenses/:id", async (req, res) => {
   try {
-    const updated = await Payment.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const updated = await Expense.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
 
     if (!updated) {
-      return res.status(404).json({ message: "Payment not found" });
+      return res.status(404).json({ message: "Expense not found" });
     }
 
     res.json(updated);
@@ -102,7 +111,7 @@ router.delete("/expenses/:id", async (req, res) => {
 });
 
 /* ================================================= */
-/* MONTHLY REPORT (OPTIONAL FILTER) */
+/* MONTHLY REPORT */
 /* ================================================= */
 router.get("/report", async (req, res) => {
   try {
@@ -126,7 +135,7 @@ router.get("/report", async (req, res) => {
 });
 
 /* ================================================= */
-/* SUMMARY (LAST 6 MONTHS) */
+/* SUMMARY */
 /* ================================================= */
 router.get("/summary", async (req, res) => {
   try {
@@ -143,10 +152,13 @@ router.get("/summary", async (req, res) => {
 
     const totalCollection = payments.reduce(
       (sum, p) => sum + Number(p.amount),
-      0,
+      0
     );
 
-    const totalExpense = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+    const totalExpense = expenses.reduce(
+      (sum, e) => sum + Number(e.amount),
+      0
+    );
 
     res.json({
       totalCollection,
@@ -170,8 +182,28 @@ router.get("/status", async (req, res) => {
   }
 });
 
+/* EDIT EXPENSE */
+router.put("/expenses/:id", async (req, res) => {
+  try {
+    const updated = await Expense.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Expense not found" });
+    }
+
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 /* ================================================= */
-/* FULL REPORT (LAST 6 MONTHS + FILTER SUPPORT) */
+/* FULL REPORT */
 /* ================================================= */
 router.get("/full-report", async (req, res) => {
   try {
@@ -193,12 +225,12 @@ router.get("/full-report", async (req, res) => {
 
     const totalCollection = payments.reduce(
       (sum, item) => sum + Number(item.amount),
-      0,
+      0
     );
 
     const totalExpense = expenses.reduce(
       (sum, item) => sum + Number(item.amount),
-      0,
+      0
     );
 
     res.json({
